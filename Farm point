@@ -1,0 +1,113 @@
+-- Auto Farm Clicker dengan GUI sederhana
+-- Remote yang dipakai: QuestRoll (sesuai request kamu)
+
+local player = game.Players.LocalPlayer
+local rs = game:GetService("ReplicatedStorage")
+local uis = game:GetService("UserInputService")
+
+local remote = rs:WaitForChild("Remotes"):WaitForChild("QuestRoll")
+
+-- Setting
+local farming = false
+local delayPerClick = 0.12   -- sesuaikan sesuai rate limit game (jangan terlalu cepat nanti kena kick)
+
+-- Buat GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SimpleAutoFarm"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 180, 0, 110)
+Frame.Position = UDim2.new(0.5, -90, 0.5, -55)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = Frame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundTransparency = 1
+Title.Text = "Auto Farm"
+Title.TextColor3 = Color3.fromRGB(220, 220, 230)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Frame
+
+-- Tombol CLOSE (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -30, 0, 2)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(190, 50, 50)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.TextSize = 16
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = Frame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+-- Tombol ON / OFF
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0, 140, 0, 45)
+ToggleBtn.Position = UDim2.new(0.5, -70, 0, 45)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+ToggleBtn.Text = "OFF"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+ToggleBtn.TextSize = 20
+ToggleBtn.Font = Enum.Font.GothamSemibold
+ToggleBtn.Parent = Frame
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 10)
+ToggleCorner.Parent = ToggleBtn
+
+-- Fungsi farming loop
+local function startFarm()
+    spawn(function()
+        while farming do
+            pcall(function()
+                remote:InvokeServer()
+            end)
+            task.wait(delayPerClick)
+        end
+    end)
+end
+
+-- Toggle logic
+ToggleBtn.MouseButton1Click:Connect(function()
+    farming = not farming
+    
+    if farming then
+        ToggleBtn.Text = "ON"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 90)
+        ToggleBtn.TextColor3 = Color3.fromRGB(230, 255, 230)
+        startFarm()
+    else
+        ToggleBtn.Text = "OFF"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+-- Close GUI
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Shortcut buka/tutup GUI (tekan = )
+uis.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.Equals then
+        Frame.Visible = not Frame.Visible
+    end
+end)
+
+print("Simple Auto Farm loaded | tekan = untuk hide/show GUI")
